@@ -10,14 +10,14 @@
 class CPULoadGenerator
 {
 public:
-    void start(int load, int cpu = -1, int runtime = -1);
+    void start(int load, int cpu = -1);
     void stop();
 
 private:
-    int load = 0;
-    int cpu = -1;
-    int threadsReadyCnt = 0;
-    bool started = false;
+    int load{0};
+    int cpu{-1};
+    int threadsReadyCnt{0};
+    bool started{false};
     std::vector<std::thread> threads_vector;
     std::mutex m_mutex;
     std::condition_variable m_condVar;

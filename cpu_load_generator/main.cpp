@@ -48,15 +48,20 @@ int main(int argc, char *argv[])
 
     CPULoadGenerator loadGenerator;
 
-    loadGenerator.start(load, CPU, runtime);
-    std::cout << "Numar pana la 30" << std::endl;
-
-    for (int i = 0; i < 30; i++)
+    loadGenerator.start(load, CPU);
+    if (runtime != -1)
     {
-        std::cout << "i= " << i << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::seconds(runtime));
+        loadGenerator.stop();
     }
-    loadGenerator.stop();
+    else
+    {
+        // wait infinite
+        while (1)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
 
     return 0;
 }

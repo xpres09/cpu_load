@@ -1,9 +1,10 @@
 #include "cpu_load_generator_impl.hpp"
+#include <sched.h>
 
 #define TOTALTIME (100)                     // Time unit in milliseconds
 #define LOADTIME(x) ((x * TOTALTIME) / 100) // Convert load in percentage
 
-void CPULoadGenerator::start(int load, int cpu, int runtime)
+void CPULoadGenerator::start(int load, int cpu)
 {
     this->load = load;
     this->cpu = cpu;
@@ -18,26 +19,6 @@ void CPULoadGenerator::start(int load, int cpu, int runtime)
         all_cpu_load(); // No logical CPU selected, load distributed automatically
     }
     std::cout << "Started generating CPU load.." << std::endl;
-
-    // If runtime parameter is given check end of time
-    if (runtime != -1)
-    {
-        std::thread wdg_thread([this, runtime]
-                               {
-            auto runtime_end = std::chrono::high_resolution_clock::now() + std::chrono::seconds(runtime);
-            while (std::chrono::high_resolution_clock::now() < runtime_end)
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-            }
-            // Stop generating and join threads
-            started = false;
-    	    std::cout<<"Joining..\n";
-            for (std::thread &tmpThread : threads_vector)
-            {
-                tmpThread.join();
-            } });
-        wdg_thread.detach();
-    }
 }
 
 void CPULoadGenerator::stop()
