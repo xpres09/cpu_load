@@ -1,5 +1,4 @@
 #include "cpu_load_generator_impl.hpp"
-#include <sched.h>
 
 #define TOTALTIME (100)                     // Time unit in milliseconds
 #define LOADTIME(x) ((x * TOTALTIME) / 100) // Convert load in percentage
