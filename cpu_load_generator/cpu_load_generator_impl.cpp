@@ -11,11 +11,29 @@ void CPULoadGenerator::start(int load, int cpu)
 
     if (cpu != -1)
     {
-        one_cpu_load(); // Logical CPU to take the load is specified and will be used
+        // Logical CPU to take the load is specified and will be used
+        std::cout << "CPU " << cpu << " will take the load" << std::endl;
+        threads_vector.push_back(std::thread([&]
+                                             { generate_load(cpu, load, 1); }));
     }
     else
     {
-        all_cpu_load(); // No logical CPU selected, load distributed automatically
+        // No logical CPU selected, load distributed automatically
+        try
+        {
+            // Get number of CPU cores
+            int cores = std::thread::hardware_concurrency();
+            for (int i = 0; i < cores; i++)
+            {
+                threads_vector.push_back(std::thread([&]
+                                                     { generate_load(cpu, load, cores); }));
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cout << "Failed to get number of hardware CPU cores" << e.what() << std::endl;
+            return;
+        }
     }
     std::cout << "Started generating CPU load.." << std::endl;
 }
@@ -76,32 +94,5 @@ void CPULoadGenerator::generate_load(int cpu, int load, const int nr_of_threads)
             std::this_thread::sleep_for(std::chrono::milliseconds(TOTALTIME - LOADTIME(load))); // Sleep rest of time
             start = std::chrono::high_resolution_clock::now();
         }
-    }
-}
-
-void CPULoadGenerator::one_cpu_load()
-{
-    std::cout << "CPU " << cpu << " will take the load" << std::endl;
-
-    threads_vector.push_back(std::thread([this]
-                                         { generate_load(cpu, load, 1); }));
-}
-
-void CPULoadGenerator::all_cpu_load()
-{
-    // Get number of CPU cores
-    try
-    {
-        int cores = std::thread::hardware_concurrency();
-        for (int i = 0; i < cores; i++)
-        {
-            threads_vector.push_back(std::thread([this, cores]
-                                                 { generate_load(cpu, load, cores); }));
-        }
-    }
-    catch (const std::exception &e)
-    {
-        std::cout << "Failed to get number of hardware CPU cores" << e.what() << std::endl;
-        return;
     }
 }
