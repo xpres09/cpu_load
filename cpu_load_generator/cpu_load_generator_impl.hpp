@@ -22,7 +22,7 @@ private:
     std::mutex m_mutex;
     std::condition_variable m_condVar;
 
-    void generate_load(int load, int nr_of_threads);
+    void generate_load(int cpu, int load, int nr_of_threads);
     void one_cpu_load();
     void all_cpu_load();
 };

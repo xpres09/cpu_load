@@ -38,8 +38,18 @@ void CPULoadGenerator::stop()
     }
 }
 
-void CPULoadGenerator::generate_load(int load, const int nr_of_threads)
+void CPULoadGenerator::generate_load(int cpu, int load, const int nr_of_threads)
 {
+    if (cpu != -1)
+    {
+        /* create a CPU set structure and set to CPU to be used */
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(cpu, &cpuset);
+        /* set CPU scheduler affinity to the CPU set pointed by cpuset */
+        sched_setaffinity(0, sizeof(cpuset), &cpuset);
+    }
+
     // Sync threads
     std::unique_lock<std::mutex> lock(m_mutex);
     threadsReadyCnt++;
@@ -74,15 +84,7 @@ void CPULoadGenerator::one_cpu_load()
     std::cout << "CPU " << cpu << " will take the load" << std::endl;
 
     threads_vector.push_back(std::thread([this]
-                                         { generate_load(load, 1); }));
-
-    /* create a CPU set structure and set to CPU to be used */
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpu, &cpuset);
-
-    /* set CPU scheduler affinity to the CPU set pointed by cpuset */
-    pthread_setaffinity_np(threads_vector[0].native_handle(), sizeof(cpu_set_t), &cpuset);
+                                         { generate_load(cpu, load, 1); }));
 }
 
 void CPULoadGenerator::all_cpu_load()
@@ -94,7 +96,7 @@ void CPULoadGenerator::all_cpu_load()
         for (int i = 0; i < cores; i++)
         {
             threads_vector.push_back(std::thread([this, cores]
-                                                 { generate_load(load, cores); }));
+                                                 { generate_load(cpu, load, cores); }));
         }
     }
     catch (const std::exception &e)
