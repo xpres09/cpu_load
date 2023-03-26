@@ -13,7 +13,7 @@ void CPULoadGenerator::start(int load, int cpu)
     {
         // Logical CPU to take the load is specified and will be used
         std::cout << "CPU " << cpu << " will take the load" << std::endl;
-        threads_vector.push_back(std::thread([&]
+        threads_vector.push_back(std::thread([this, cpu, load]
                                              { generate_load(cpu, load, 1); }));
     }
     else
@@ -25,7 +25,7 @@ void CPULoadGenerator::start(int load, int cpu)
             int cores = std::thread::hardware_concurrency();
             for (int i = 0; i < cores; i++)
             {
-                threads_vector.push_back(std::thread([&]
+                threads_vector.push_back(std::thread([this, cpu, load, cores]
                                                      { generate_load(cpu, load, cores); }));
             }
         }
