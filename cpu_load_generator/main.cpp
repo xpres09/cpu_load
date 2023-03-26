@@ -1,13 +1,24 @@
 #include "cpu_load_generator_impl.hpp"
 #include <cstring>
+#include <csignal>
 
 /* global variables */
 
-int load = 0;     // CPU load
-int CPU = -1;     // No CPU specified
-int runtime = -1; // Initialize load running time
+static int load = 0;     // CPU load
+static int CPU = -1;     // No CPU specified
+static int runtime = -1; // Initialize load running time
+CPULoadGenerator loadGenerator;
 
 /* functions */
+
+void signalHandler(int signum)
+{
+    std::cout << "Interrupt signal (" << signum << ") received.\n";
+
+    loadGenerator.stop();
+
+    exit(signum);
+}
 
 void parse_arguments(int argc, char *argv[])
 {
@@ -42,11 +53,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // register signal SIGINT and signal handler
+    signal(SIGINT, signalHandler);
+
     load = std::stoi(argv[1]);
     // Parse command line arguments
     parse_arguments(argc, argv);
-
-    CPULoadGenerator loadGenerator;
 
     loadGenerator.start(load, CPU);
     if (runtime != -1)
