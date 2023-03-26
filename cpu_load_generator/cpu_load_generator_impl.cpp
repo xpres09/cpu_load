@@ -7,10 +7,19 @@ void CPULoadGenerator::start(int load, int cpu)
 {
     this->load = load;
     this->cpu = cpu;
-    started = true; // Set started flag to true to check in generate_load while loop
+
+    // Get number of CPU cores
+    int cores = std::thread::hardware_concurrency();
 
     if (cpu != -1)
     {
+        // Check if given CPU number is valid as existing number of cores
+        if (cpu >= cores)
+        {
+            std::cout << "CPU has a maximum number of " << cores << " cores !" << std::endl;
+            exit(0);
+        }
+
         // Logical CPU to take the load is specified and will be used
         std::cout << "CPU " << cpu << " will take the load" << std::endl;
         threads_vector.push_back(std::thread([this, cpu, load]
@@ -19,22 +28,14 @@ void CPULoadGenerator::start(int load, int cpu)
     else
     {
         // No logical CPU selected, load distributed automatically
-        try
+        for (int i = 0; i < cores; i++)
         {
-            // Get number of CPU cores
-            int cores = std::thread::hardware_concurrency();
-            for (int i = 0; i < cores; i++)
-            {
-                threads_vector.push_back(std::thread([this, cpu, load, cores]
-                                                     { generate_load(cpu, load, cores); }));
-            }
-        }
-        catch (const std::exception &e)
-        {
-            std::cout << "Failed to get number of hardware CPU cores" << e.what() << std::endl;
-            return;
+            threads_vector.push_back(std::thread([this, cpu, load, cores]
+                                                 { generate_load(cpu, load, cores); }));
         }
     }
+
+    started = true; // Set started flag to true to check in generate_load while loop
     std::cout << "Started generating CPU load.." << std::endl;
 }
 
@@ -44,6 +45,7 @@ void CPULoadGenerator::stop()
     if (true == started)
     {
         started = false;
+        // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         for (std::thread &tmpThread : threads_vector)
         {
             tmpThread.join();

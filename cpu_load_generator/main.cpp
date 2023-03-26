@@ -57,6 +57,13 @@ int main(int argc, char *argv[])
     signal(SIGINT, signalHandler);
 
     load = std::stoi(argv[1]);
+    // Validate load value between 1-100
+    if ((load < 1) || (load > 100))
+    {
+        std::cout << "Load value not between 1-100 % !" << std::endl;
+        return 0;
+    }
+
     // Parse command line arguments
     parse_arguments(argc, argv);
 
